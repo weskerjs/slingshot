@@ -1,22 +1,76 @@
 # slingshot
-> Tagline
+> A webhook management & dispatcher package for AdonisJS 5
 
-[![github-actions-image]][github-actions-url] [![npm-image]][npm-url] [![license-image]][license-url] [![typescript-image]][typescript-url]
+Slingshot comes with all the code necessary for your app to sling webhooks at whoever and wherever.
 
-A short brief
+This package uses Redis and [@rlanz/bull-queue](https://github.com/RomainLanz/adonis-bull-queue)
 
 ## Installation
 
+You will need Redis and @rlanz/bull-queue package setup before you install and configure this package.
+
+```
+# Install   
+npm install @adonisaddons/slingshot  
+  
+# Configure  
+node ace configure @adonisaddons/slingshot
+```
+
 ## Usage
 
-[github-actions-image]: https://github.com/slingshot/actions/workflows/test.yml
-[github-actions-url]: https://img.shields.io/github/workflow/status/slingshot/test?style=for-the-badge "github-actions"
+When triggering webhooks, ensure you're listening to the Queue using ```node ace queue:listen```
 
-[npm-image]: https://img.shields.io/npm/v/slingshot.svg?style=for-the-badge&logo=npm
-[npm-url]: https://npmjs.org/package/slingshot "npm"
+#### List Webhooks  
+```
+GET: /slingshot
+```
 
-[license-image]: https://img.shields.io/npm/l/slingshot?color=blueviolet&style=for-the-badge
-[license-url]: LICENSE.md "license"
+# Create a new webhook
+```
+POST: /slingshot
 
-[typescript-image]: https://img.shields.io/badge/Typescript-294E80.svg?style=for-the-badge&logo=typescript
-[typescript-url]:  "typescript"
+# example body
+{
+    "name": "Test Webhook",
+    "description": "It does things",
+    "enabled": true,
+    "url": "https://webhook.site/xxxxx-xxxxx-xxxxx",
+    "requires_auth": false,
+    "user_id": "1"
+}
+```
+
+# Get Webhook
+```
+GET: /slingshot/:id
+```
+
+# Update Webhook
+```
+POST: /slingshot/:id
+
+# example body
+{
+    "name": "Test Webhook",
+    "description": "It does things",
+    "enabled": true,
+    "url": "https://webhook.site/xxxxx-xxxxx-xxxxx",
+    "requires_auth": false,
+    "user_id": "1"
+}
+```
+
+# Delete Webhook  
+
+```
+DELETE: /slingshot/:id
+```
+
+# Trigger Webhook
+
+The request body will be sent to the webhook URL
+
+```
+POST: /slingshot/:id/trigger
+```
