@@ -1,0 +1,31 @@
+import { DateTime } from 'luxon'
+import { BaseModel, HasOne, column, hasOne } from '@ioc:Adonis/Lucid/Orm'
+
+import Webhook from './Webhook'
+
+export default class WebhookResponse extends BaseModel {
+  @column({ isPrimary: true })
+  public id: number
+
+  @column()
+  public webhook_id: number
+
+  @column()
+  public status_code: number
+
+  @column()
+  public response: string
+
+  @column.dateTime({ autoCreate: true })
+  public createdAt: DateTime
+
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  public updatedAt: DateTime
+
+  /** Relationships */
+  @hasOne(() => Webhook, {
+    localKey: 'webhook_id',
+    foreignKey: 'id',
+  })
+  public webhook: HasOne<typeof Webhook>
+}

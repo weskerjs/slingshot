@@ -1,0 +1,78 @@
+import type { JobHandlerContract, Job } from '@ioc:Rlanz/Queue'
+import Webhook from 'App/Models/Webhook'
+import WebhookResponse from 'App/Models/WebhookResponse'
+
+import axios, { AxiosError, AxiosRequestConfig } from 'axios'
+import { DateTime } from 'luxon'
+
+export type WebhookCallPayload = {
+  webhook: Webhook
+  data: { [key: string]: any }
+}
+
+export default class implements JobHandlerContract {
+  constructor(public job: Job) {
+    this.job = job
+  }
+
+  /**
+   * Base Entry point
+   */
+  public async handle(payload: WebhookCallPayload) {
+    const { webhook, data } = payload
+
+    /** Build Axios Request */
+    let config: AxiosRequestConfig = {
+      maxBodyLength: Infinity,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+
+    if (webhook.requires_auth) {
+      config.headers![webhook.auth_key] = webhook.auth_value
+    }
+
+    let response_body = ''
+    let last_call_time = DateTime.now()
+    let last_call_status = 0
+
+    try {
+      const response = await axios.post(webhook.url, data, config)
+
+      response_body = JSON.stringify(response.data)
+      last_call_time = DateTime.now()
+      last_call_status = response.status
+    } catch (err: any) {
+      const axiosError: AxiosError = err
+
+      response_body = JSON.stringify(axiosError.response?.data)
+      last_call_time = DateTime.now()
+      last_call_status = axiosError.response!.status
+    }
+
+    await WebhookResponse.create({
+      webhook_id: webhook.id,
+      status_code: last_call_status,
+      response: response_body,
+    })
+
+    const eWebhook = await Webhook.query().where('id', webhook.id).firstOrFail()
+    eWebhook.last_called = last_call_time
+    eWebhook.last_call_status = last_call_status
+
+    if (400 <= last_call_status) {
+      eWebhook.retries += 1
+      await eWebhook.save()
+      throw Error(`[ Slingshot ] Webhook #${webhook.id} failed with status - ${last_call_status}`)
+    }
+
+    eWebhook.retries = 0
+    await eWebhook.save()
+  }
+
+  /**
+   * This is an optional method that gets called if it exists when the retries has exceeded and is marked failed.
+   */
+  public async failed() {}
+}

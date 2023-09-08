@@ -1,0 +1,54 @@
+import { DateTime } from 'luxon'
+import { BaseModel, HasMany, column, hasMany } from '@ioc:Adonis/Lucid/Orm'
+import WebhookResponse from './WebhookResponse'
+
+export default class Webhook extends BaseModel {
+  @column({ isPrimary: true })
+  public id: number
+
+  @column()
+  public name: string
+
+  @column()
+  public description: string
+
+  @column()
+  public user_id: string
+
+  @column()
+  public enabled: boolean
+
+  @column()
+  public url: string
+
+  @column()
+  public requires_auth: boolean
+
+  @column()
+  public auth_key: string
+
+  @column()
+  public auth_value: string
+
+  @column()
+  public retries: number
+
+  @column()
+  public last_call_status: number
+
+  @column.dateTime()
+  public last_called: DateTime
+
+  @column.dateTime({ autoCreate: true })
+  public createdAt: DateTime
+
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  public updatedAt: DateTime
+
+  /** Relationships */
+  @hasMany(() => WebhookResponse, {
+    localKey: 'id',
+    foreignKey: 'webhook_id',
+  })
+  public responses: HasMany<typeof WebhookResponse>
+}

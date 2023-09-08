@@ -1,0 +1,10 @@
+import Route from '@ioc:Adonis/Core/Route'
+
+Route.group(() => {
+  Route.get('/', 'SlingshotController.list')
+  Route.post('/', 'SlingshotController.create')
+  Route.get('/:id', 'SlingshotController.get')
+  Route.post('/:id', 'SlingshotController.update')
+  Route.post('/:id/trigger', 'SlingshotController.trigger')
+  Route.delete('/:id', 'SlingshotController.delete')
+}).prefix('/slingshot')

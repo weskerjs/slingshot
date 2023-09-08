@@ -1,0 +1,91 @@
+{
+  "name": "@adonisaddons/slingshot",
+  "version": "0.0.3",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "mrm": "mrm --preset=@adonisjs/mrm-preset",
+    "pretest": "npm run lint",
+    "test": "node -r @adonisjs/require-ts/build/register bin/test.ts",
+    "clean": "del-cli build",
+    "compile": "npm run clean && tsc && npm run copyfiles",
+    "build": "npm run compile",
+    "prepublishOnly": "npm run build",
+    "copyfiles": "copyfiles \"templates/**/*txt\" \"instructions.md\" build"
+  },
+  "author": "Max Diamond",
+  "license": "MIT",
+  "devDependencies": {
+    "@adonisjs/core": "^5.9.0",
+    "@adonisjs/mrm-preset": "^5.0.3",
+    "@adonisjs/require-ts": "^2.0.13",
+    "@adonisjs/sink": "^5.4.3",
+    "@rlanz/bull-queue": "^1.0.6",
+    "@types/node": "^20.5.9",
+    "copyfiles": "^2.4.1",
+    "del-cli": "^5.1.0",
+    "mrm": "^4.1.17",
+    "typescript": "^5.2.2"
+  },
+  "peerDependencies": {
+    "@adonisjs/core": "^5.9.0",
+    "@rlanz/bull-queue": "1.0.6"
+  },
+  "mrmConfig": {
+    "core": false,
+    "license": "MIT",
+    "services": [
+      "github-actions"
+    ],
+    "minNodeVersion": "16.13.1",
+    "probotApps": [
+      "stale"
+    ],
+    "runGhActionsOnWindows": false
+  },
+  "files": [
+    "build"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adonisaddons/portal.git"
+  },
+  "bugs": {
+    "url": "https://github.com/adonisaddons/portal/issues"
+  },
+  "homepage": "https://github.com/adonisaddons/portal#readme",
+  "adonisjs": {
+    "instructions": "./build/instructions.js",
+    "instructionsMd": "./build/instructions.md",
+    "templates": {
+      "app": [
+        {
+          "src": "controllers/SlingshotController.txt",
+          "dest": "Controllers/Http/SlingshotController.ts"
+        },
+        {
+          "src": "validators/CreateWebhookValidator.txt",
+          "dest": "Validators/CreateWebhookValidator"
+        },
+        {
+          "src": "models/Webhook.txt",
+          "dest": "Models/Webhook"
+        },
+        {
+          "src": "models/WebhookResponse.txt",
+          "dest": "Models/WebhookResponse"
+        },
+        {
+          "src": "services/WebhookService.txt",
+          "dest": "Services/WebhookService"
+        }
+      ],
+      "start": [
+        {
+          "src": "routes/slingshot.txt",
+          "dest": "slingshot"
+        }
+      ]
+    }
+  }
+}

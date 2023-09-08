@@ -1,0 +1,132 @@
+import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
+
+import Webhook from 'App/Models/Webhook'
+
+import CreateWebhookValidator from 'App/Validators/CreateWebhookValidator'
+import { dispatchWebhook } from 'App/Services/WebhookService'
+
+export default class SlingshotController {
+  /** List all webhooks */
+  public async list({ response }: HttpContextContract) {
+    const queryBuilder = Webhook.query().orderBy('name', 'asc')
+
+    const webhooks = await queryBuilder
+
+    return response.ok({
+      webhooks,
+    })
+  }
+
+  /** Get a Webhook by Id */
+  public async get({ request, response }: HttpContextContract) {
+    const { id } = request.params()
+
+    const webhook = await Webhook.query().where('id', id).first()
+
+    if (!webhook) return errorResponse(response, 'No webhook matches id')
+
+    return response.ok({
+      webhook,
+    })
+  }
+
+  /** Create a webhook */
+  public async create({ request, response }: HttpContextContract) {
+    try {
+      const payload = await request.validate(CreateWebhookValidator)
+
+      const webhook = await Webhook.create({
+        name: payload.name,
+        description: payload.description,
+        url: payload.url,
+        enabled: payload.enabled,
+        requires_auth: payload.requires_auth,
+        auth_key: payload.auth_key,
+        auth_value: payload.auth_value,
+        user_id: payload.user_id,
+      })
+
+      return response.ok({
+        webhook,
+      })
+    } catch (error) {
+      return errorResponse(response, error.messages ? error.messages : error)
+    }
+  }
+
+  /** Update a webhook */
+  public async update({ request, response }: HttpContextContract) {
+    try {
+      const { id } = request.params()
+      const payload = await request.validate(CreateWebhookValidator)
+
+      const webhook = await Webhook.query().where('id', id).first()
+
+      if (!webhook) return errorResponse(response, 'No webhook matches id')
+
+      webhook.name = payload.name
+      webhook.description = payload.description
+      webhook.url = payload.url
+      webhook.enabled = payload.enabled
+      webhook.requires_auth = payload.requires_auth
+
+      if (payload.requires_auth) {
+        webhook.auth_key = payload.auth_key!
+        webhook.auth_value = payload.auth_value!
+      }
+
+      webhook.user_id = payload.user_id
+
+      await webhook.save()
+
+      return response.ok({
+        webhook,
+      })
+    } catch (error) {
+      return errorResponse(response, error.messages ? error.messages : error)
+    }
+  }
+
+  /** Deletes a webhook */
+  public async delete({ request, response }: HttpContextContract) {
+    try {
+      const { id } = request.params()
+
+      const webhook = await Webhook.query().where('id', id).first()
+      if (!webhook) return errorResponse(response, 'No webhook matches id')
+
+      await webhook.delete()
+
+      return response.ok({
+        deleted: true,
+      })
+    } catch (error) {
+      return errorResponse(response, error)
+    }
+  }
+
+  /** Trigger a webhook */
+  public async trigger({ request, response }: HttpContextContract) {
+    try {
+      const { id } = request.params()
+      const body = request.body()
+
+      const webhook = await Webhook.query().where('id', id).first()
+      if (!webhook) return errorResponse(response, 'No webhook matches id')
+
+      await dispatchWebhook(webhook, body)
+
+      return response.ok({
+        triggered: true,
+      })
+    } catch (error) {
+      return errorResponse(response, error)
+    }
+  }
+}
+
+async function errorResponse(response: HttpContextContract['response'], error: string) {
+  return response.badRequest({
+    error,
+  })
+}

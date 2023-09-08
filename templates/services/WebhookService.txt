@@ -1,0 +1,38 @@
+import { Queue } from '@ioc:Rlanz/Queue'
+import Webhook from 'App/Models/Webhook'
+
+// import { validator } from '@ioc:Adonis/Core/Validator'
+
+export enum WebhookTypes {
+  CUSTOM = 'custom',
+  DISCORD = 'discord',
+  SLACK = 'slack',
+}
+
+export async function dispatchWebhook(webhook: Webhook, data: any) {
+  await Queue.dispatch(
+    'App/Jobs/WebhookCall',
+    {
+      webhook,
+      data,
+    },
+    {
+      attempts: 3,
+      backoff: { type: 'exponential', delay: 5000 },
+    }
+  )
+}
+
+// export async function validateDiscordWebhook(data: any) {
+//   return await validator.validate({
+//     schema: DiscordWebhookRequest,
+//     data: data,
+//   })
+// }
+
+// export async function validateSlackWebhook(data: any) {
+//   return await validator.validate({
+//     schema: DiscordWebhookRequest,
+//     data: data,
+//   })
+// }
